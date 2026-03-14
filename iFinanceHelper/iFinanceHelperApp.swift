@@ -10,23 +10,12 @@ import SwiftData
 
 @main
 struct iFinanceHelperApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Expense.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    let repository = ExpenseRepository.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(repository.container)
     }
 }

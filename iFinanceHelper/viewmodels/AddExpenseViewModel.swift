@@ -1,18 +1,31 @@
-//
-//  AddExpenseViewModel.swift
-//  iFinanceHelper
-//
-//  Created by Vlad on 14/03/2026.
-//
-
 import Foundation
-import Combine
+import SwiftData
+internal import Combine
 
-class AddExpenseViewModel: ObservableObject {
-    @Published var amount: Decimal = 0.00
-    @Published var expenseType: ExpenseType = .other
-    @Published var note: String?
-    @Published var date: Date = Date.now
+@Observable
+class AddExpenseViewModel {
 
-    private var cancellables = Set<AnyCancellable>()
+    var amount: Decimal = 0.00
+    var expenseType: ExpenseType? = nil
+    var note: String?
+    var date: Date = Date.now
+
+    private let repository = ExpenseRepository.shared
+
+    final func saveExpense() {
+        guard let expenseType = expenseType, amount > 0.00, date <= .now else { return }
+
+        let expense = Expense(amount: amount, expenseType: expenseType, timestamp: date, note: note)
+
+        repository.addExpense(expense: expense)
+
+        resetFields()
+    }
+
+    private func resetFields() {
+        amount = 0.00
+        expenseType = nil
+        note = nil
+        date = .now
+    }
 }

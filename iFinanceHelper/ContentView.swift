@@ -36,6 +36,7 @@ struct ContentView: View {
 }
 
 #Preview {
+    let repository = ExpenseRepository.shared
     ContentView()
-        .modelContainer(for: Expense.self, inMemory: true)
+        .modelContainer(repository.container)
 }

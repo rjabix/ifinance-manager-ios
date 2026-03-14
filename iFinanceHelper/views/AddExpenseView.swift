@@ -6,25 +6,38 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddExpenseView: View {
-    @StateObject var viewModel: AddExpenseViewModel = AddExpenseViewModel()
+    @State var viewModel: AddExpenseViewModel = AddExpenseViewModel()
 
     var body: some View {
-        Text("Add Expense")
-            .font(Font.largeTitle)
+        ScrollView {
+            Text("Add Expense")
+                .font(Font.largeTitle)
 
-        Text("Track your spendings")
+            Text("Track your spendings")
 
-        AmountField
-            .padding()
+            AmountField
+                .padding()
 
-        Label("Category", systemImage: "tag")
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .font(Font.title3)
-            .padding()
+            Label("Category", systemImage: "tag")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(Font.title3)
+                .padding([.top, .leading])
 
-        CategoryGridView(viewModel: viewModel)
+            CategoryGridView(viewModel: viewModel)
+
+            DatePickerCard(date: $viewModel.date)
+                .padding()
+
+            NoteField(note: $viewModel.note)
+
+            Button("Add expense", action: viewModel.saveExpense)
+                .font(Font.title)
+                .padding()
+                .buttonStyle(.glassProminent)
+        }
     }
 
 
@@ -75,19 +88,15 @@ struct AddExpenseView: View {
 
     struct CategoryGridView: View {
 
-        var viewModel: AddExpenseViewModel
-
-        init(viewModel: AddExpenseViewModel) {
-            self.viewModel = viewModel
-        }
+        @State var viewModel: AddExpenseViewModel
 
         private let categories = [
-            Category(icon: "burger", name: "Food", expenseType: .food),
-            Category(icon: "🚗", name: "Transport", expenseType: .transport),
-            Category(icon: "🛍️", name: "Shopping", expenseType: .shopping),
-            Category(icon: "🎮", name: "Entertainment", expenseType: .entertainment),
-            Category(icon: "📄", name: "Health", expenseType: .health),
-            Category(icon: "💊", name: "Others", expenseType: .other)
+            Category(icon: "fork.knife", name: "Food", expenseType: .food),
+            Category(icon: "car", name: "Transport", expenseType: .transport),
+            Category(icon: "cart", name: "Shopping", expenseType: .shopping),
+            Category(icon: "gamecontroller", name: "Entertainment", expenseType: .entertainment),
+            Category(icon: "heart", name: "Health", expenseType: .health),
+            Category(icon: "ellipsis", name: "Others", expenseType: .other)
         ]
 
         let columns = [
@@ -99,33 +108,138 @@ struct AddExpenseView: View {
         var body: some View {
 
             LazyVGrid(columns: columns, spacing: 20) {
+
                 ForEach(categories) { category in
 
-                    Button() {
+                    let isSelected = viewModel.expenseType == category.expenseType
+
+                    Button {
                         viewModel.expenseType = category.expenseType
                     } label: {
+
                         VStack(spacing: 10) {
 
-                            Text(category.icon)
-                                .font(.system(size: 40))
+                            Image(systemName: category.icon)
+                                .font(.system(size: 32))
 
                             Text(category.name)
                                 .font(.headline)
                         }
-                        .frame(height: 110)
+                        .frame(height: 90)
                         .frame(maxWidth: .infinity)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.gray.opacity(0.15))
+                                .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
                         )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                        )
+                        .opacity(isSelected || viewModel.expenseType == nil ? 1 : 0.4)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding()
         }
     }
+
+    struct DatePickerCard: View {
+
+        @Binding var date: Date
+        @State private var showPicker = false
+
+        var body: some View {
+
+            Button {
+                showPicker = true
+            } label: {
+
+                HStack(spacing: 12) {
+
+                    Image(systemName: "calendar")
+                        .font(.title2)
+
+                    Text(dateText)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+
+                    Spacer()
+                }
+                .padding()
+                .frame(height: 80)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color.gray.opacity(0.15))
+                )
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showPicker) {
+
+                VStack {
+
+                    DatePicker(
+                        "Select date",
+                        selection: $date,
+                        in: ...Date.now,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.graphical)
+                    .padding()
+
+                    Button("Done") {
+                        showPicker = false
+                    }
+                    .padding()
+                }
+                .presentationDetents([.medium])
+            }
+        }
+
+        private var dateText: String {
+            if Calendar.current.isDateInToday(date) {
+                return "Today"
+            }
+
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
+    }
+
+    struct NoteField: View {
+        @Binding var note: String?
+
+        var body: some View {
+
+            HStack(spacing: 12) {
+
+                Image(systemName: "note")
+                    .font(.title2)
+                    .padding([.leading])
+
+                TextField("Note", text: $note ?? "")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+            }
+            .frame(height: 80)
+            .cornerRadius(25)
+            .overlay(
+                RoundedRectangle(cornerRadius: 25)
+                    .stroke(style: StrokeStyle(lineWidth: 1, dash: [2]))
+            )
+            .padding([.horizontal])
+        }
+    }
+
 }
 
 #Preview {
+    let repository = ExpenseRepository.shared
+
     AddExpenseView()
+        .modelContainer(repository.container)
 }
