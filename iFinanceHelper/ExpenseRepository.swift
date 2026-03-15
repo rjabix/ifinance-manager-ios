@@ -12,15 +12,25 @@ import SwiftData
 class ExpenseRepository {
     static let shared = ExpenseRepository()
 
+    // Create a specific instance for Previews
+    static var preview: ExpenseRepository = {
+        let repo = ExpenseRepository(isStoredInMemory: true)
+        // Optionally seed with fake data here
+        return repo
+    }()
+
     let container: ModelContainer
     let context: ModelContext
 
-    private init() {
+    private init(isStoredInMemory: Bool = false) {
         do {
-            container = try ModelContainer(for: Expense.self)
+            let schema = Schema([Expense.self])
+            let configuration = ModelConfiguration(isStoredInMemoryOnly: isStoredInMemory)
+
+            container = try ModelContainer(for: schema, configurations: [configuration])
             context = container.mainContext
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            fatalError("Could not initialize ModelContainer: \(error)")
         }
     }
 
@@ -28,7 +38,7 @@ class ExpenseRepository {
         context.insert(expense)
     }
 
-    func deleteExpense(_ expense: Expense) {
+    func deleteExpense(expense: Expense) {
         context.delete(expense)
     }
 

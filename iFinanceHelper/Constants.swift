@@ -13,4 +13,22 @@ struct Constants {
     static let Add: String = "Add"
     static let Analytics: String = "Analytics"
     static let Categories: String = "Categories"
+
+    static let TypeToSystemImageString: [ExpenseType: String] = [
+        .food: "fork.knife",
+        .transport: "car",
+        .shopping: "cart",
+        .entertainment: "gamecontroller",
+        .health: "heart",
+        .other: "ellipsis"
+    ]
+
+    static let TypeToNameString: [ExpenseType: String] = [
+        .food: "Food",
+        .transport: "Transport",
+        .shopping: "Shopping",
+        .entertainment: "Entertainment",
+        .health: "Health",
+        .other: "Other"
+    ]
 }

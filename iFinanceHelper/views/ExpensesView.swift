@@ -9,7 +9,17 @@ import SwiftUI
 import SwiftData
 
 struct ExpensesView: View {
-    @Environment(\.modelContext) private var modelContext
+    @State var viewModel: ExpenseViewModel
+
+    init(repository: ExpenseRepository? = nil) {
+        _viewModel = State(wrappedValue: ExpenseViewModel(repository: repository ?? ExpenseRepository.shared))
+
+        _items = Query(
+            filter: GetFilterPredicateBasedOnDaysAgo(daysAgo: -7),
+            sort: \.timestamp
+        )
+    }
+
     @Query private var items: [Expense]
 
     var body: some View {
@@ -36,23 +46,17 @@ struct ExpensesView: View {
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Expense(amount: 10.0, expenseType: .food)
-            modelContext.insert(newItem)
-        }
-    }
-
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                viewModel.deleteExpense(expense: items[index])
             }
         }
     }
 }
 
 #Preview {
-    ExpensesView()
-        .modelContainer(for: Expense.self, inMemory: true)
+    let repository = ExpenseRepository.preview
+    ExpensesView(repository: repository)
+        .modelContainer(repository.container)
 }

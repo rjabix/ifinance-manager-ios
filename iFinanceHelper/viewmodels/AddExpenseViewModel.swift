@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 internal import Combine
 
+@MainActor
 @Observable
 class AddExpenseViewModel {
 
@@ -10,7 +11,11 @@ class AddExpenseViewModel {
     var note: String?
     var date: Date = Date.now
 
-    private let repository = ExpenseRepository.shared
+    private var repository: ExpenseRepository
+
+    init(repository: ExpenseRepository? = nil){
+        self.repository = repository ?? ExpenseRepository.shared
+    }
 
     final func saveExpense() {
         guard let expenseType = expenseType, amount > 0.00, date <= .now else { return }

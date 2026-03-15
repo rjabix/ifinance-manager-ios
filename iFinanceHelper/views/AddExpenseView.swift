@@ -9,39 +9,75 @@ import SwiftUI
 import SwiftData
 
 struct AddExpenseView: View {
-    @State var viewModel: AddExpenseViewModel = AddExpenseViewModel()
+    @State var viewModel: AddExpenseViewModel
+
+    @State private var showSuccessPopup: Bool = false
+
+    init(repository: ExpenseRepository? = nil) {
+        _viewModel = State(wrappedValue: AddExpenseViewModel(repository: repository ?? ExpenseRepository.shared))
+    }
 
     var body: some View {
-        ScrollView {
-            Text("Add Expense")
-                .font(Font.largeTitle)
+        ZStack {
+            ScrollView {
+                Text("Add Expense")
+                    .font(Font.largeTitle)
 
-            Text("Track your spendings")
+                Text("Track your spendings")
 
-            AmountField
-                .padding()
+                AmountField(amount: $viewModel.amount)
+                    .padding()
 
-            Label("Category", systemImage: "tag")
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .font(Font.title3)
-                .padding([.top, .leading])
+                Label("Category", systemImage: "tag")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(Font.title3)
+                    .padding([.top, .leading])
 
-            CategoryGridView(viewModel: viewModel)
+                CategoryGridView(expenseType: $viewModel.expenseType)
 
-            DatePickerCard(date: $viewModel.date)
-                .padding()
+                DatePickerCard(date: $viewModel.date)
+                    .padding()
 
-            NoteField(note: $viewModel.note)
+                NoteField(note: $viewModel.note)
 
-            Button("Add expense", action: viewModel.saveExpense)
-                .font(Font.title)
+                Button("Add expense") {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    showSuccessPopup = true
+
+                    withAnimation {
+                        viewModel.saveExpense()
+                    }
+
+                    // Automatically hide the popup after 1.5 sec
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation {
+                            showSuccessPopup = false
+                        }
+                    }
+                }
+                .font(.title)
                 .padding()
                 .buttonStyle(.glassProminent)
+                .disabled(viewModel.amount <= 0 || viewModel.expenseType == nil)
+            }
+
+            // 2. The Popup UI
+            if showSuccessPopup {
+                VStack {
+                    successToast
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .padding(.bottom, 50)
+                .zIndex(1) // Ensure it stays on top
+            }
         }
     }
 
 
-    private var AmountField: some View {
+    struct AmountField: View {
+        @Binding var amount: Decimal
+
         var body: some View {
 
             VStack {
@@ -66,7 +102,7 @@ struct AddExpenseView: View {
                         }
 
                         // Amount Input
-                        TextField("0.00", value: $viewModel.amount, format: .number)
+                        TextField("0.00", value: $amount, format: .number)
                             .font(.system(size: 42, weight: .light))
                             .keyboardType(.decimalPad)
                     }
@@ -75,29 +111,11 @@ struct AddExpenseView: View {
                 .padding()
             }
         }
-
-        return body
-    }
-
-    private struct Category: Identifiable {
-        let id = UUID()
-        let icon: String
-        let name: String
-        let expenseType: ExpenseType
     }
 
     struct CategoryGridView: View {
 
-        @State var viewModel: AddExpenseViewModel
-
-        private let categories = [
-            Category(icon: "fork.knife", name: "Food", expenseType: .food),
-            Category(icon: "car", name: "Transport", expenseType: .transport),
-            Category(icon: "cart", name: "Shopping", expenseType: .shopping),
-            Category(icon: "gamecontroller", name: "Entertainment", expenseType: .entertainment),
-            Category(icon: "heart", name: "Health", expenseType: .health),
-            Category(icon: "ellipsis", name: "Others", expenseType: .other)
-        ]
+        @Binding var expenseType: ExpenseType?
 
         let columns = [
             GridItem(.flexible()),
@@ -109,20 +127,20 @@ struct AddExpenseView: View {
 
             LazyVGrid(columns: columns, spacing: 20) {
 
-                ForEach(categories) { category in
+                ForEach(ExpenseType.allCases, id: \.self) { type in
 
-                    let isSelected = viewModel.expenseType == category.expenseType
+                    let isSelected = $expenseType.wrappedValue == type
 
                     Button {
-                        viewModel.expenseType = category.expenseType
+                        $expenseType.wrappedValue = type
                     } label: {
 
                         VStack(spacing: 10) {
 
-                            Image(systemName: category.icon)
+                            Image(systemName: Constants.TypeToSystemImageString[type]!)
                                 .font(.system(size: 32))
 
-                            Text(category.name)
+                            Text(Constants.TypeToNameString[type]!)
                                 .font(.headline)
                         }
                         .frame(height: 90)
@@ -135,7 +153,7 @@ struct AddExpenseView: View {
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
                         )
-                        .opacity(isSelected || viewModel.expenseType == nil ? 1 : 0.4)
+                        .opacity(isSelected || $expenseType.wrappedValue == nil ? 1 : 0.4)
                     }
                     .buttonStyle(.plain)
                 }
@@ -235,11 +253,24 @@ struct AddExpenseView: View {
         }
     }
 
+    var successToast: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.blue)
+            Text("Expense Added!")
+                .font(.headline)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 24)
+        .cornerRadius(25)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .glassEffect()
+    }
 }
 
 #Preview {
-    let repository = ExpenseRepository.shared
+    let repository = ExpenseRepository.preview
 
-    AddExpenseView()
+    AddExpenseView(repository: repository)
         .modelContainer(repository.container)
 }

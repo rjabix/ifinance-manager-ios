@@ -9,6 +9,12 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    let repository: ExpenseRepository
+
+    init(repository: ExpenseRepository? = nil){
+        self.repository = repository ?? .shared
+    }
+
     var body: some View {
         TabView {
             Tab(Constants.Home, systemImage: "house") {
@@ -16,11 +22,11 @@ struct ContentView: View {
             }
 
             Tab(Constants.Expenses, systemImage: "dollarsign.arrow.trianglehead.counterclockwise.rotate.90") {
-                ExpensesView()
+                ExpensesView(repository: repository)
             }
 
             Tab(Constants.Add, systemImage: "plus.circle") {
-                AddExpenseView()
+                AddExpenseView(repository: repository)
             }
 
             Tab(Constants.Analytics, systemImage: "chart.bar.xaxis") {
@@ -36,7 +42,7 @@ struct ContentView: View {
 }
 
 #Preview {
-    let repository = ExpenseRepository.shared
-    ContentView()
+    let repository = ExpenseRepository.preview
+    ContentView(repository: repository)
         .modelContainer(repository.container)
 }
