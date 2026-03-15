@@ -1,0 +1,66 @@
+//
+//  PeriodPickerView.swift
+//  iFinanceHelper
+//
+//  Created by Vlad on 15/03/2026.
+//
+
+import SwiftUI
+
+struct PeriodPickerView: View {
+    @Binding var dayPeriod: Int
+
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+
+    var body: some View {
+        LazyVGrid(columns: columns) {
+            DateButton(dayPeriod: $dayPeriod, text: "Week", dayPeriodValue: 7)
+            DateButton(dayPeriod: $dayPeriod, text: "Month", dayPeriodValue: 30)
+            DateButton(dayPeriod: $dayPeriod, text: "Year", dayPeriodValue: 365)
+        }
+    }
+
+    struct DateButton: View {
+        @Binding var dayPeriod: Int
+
+        let text: String
+        let dayPeriodValue: Int
+
+        private var isSelected: Bool {
+            dayPeriod == dayPeriodValue
+        }
+
+        var body: some View {
+            Button {
+                dayPeriod = dayPeriodValue
+            } label: {
+                Text(text)
+                    .font(.headline)
+                    .frame(height: 45)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    )
+                    .opacity(isSelected ? 1 : 0.4)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+#Preview {
+    @Previewable @State var dayPeriod: Int = 0
+    VStack {
+        PeriodPickerView(dayPeriod: $dayPeriod)
+        Text("\(dayPeriod)")
+    }
+}

@@ -1,31 +1,37 @@
 //
-//  AddExpenseView.swift
+//  EditExpenseView.swift
 //  iFinanceHelper
 //
-//  Created by Vlad on 13/03/2026.
+//  Created by Vlad on 15/03/2026.
 //
 
 import SwiftUI
 import SwiftData
 
-struct AddExpenseView: View {
-    @State var viewModel: AddExpenseViewModel
+struct EditExpenseView: View {
+    @State var viewModel: EditExpenseViewModel
+    @Environment(\.dismiss) private var dismiss
 
     @State private var showSuccessPopup: Bool = false
 
-    init(repository: ExpenseRepository? = nil) {
-        _viewModel = State(wrappedValue: AddExpenseViewModel(repository: repository ?? ExpenseRepository.shared))
+    init(item: Expense, repository: ExpenseRepository? = nil) {
+        _viewModel = State(
+            wrappedValue: EditExpenseViewModel(
+                expense: item,
+                repository: repository ?? ExpenseRepository.shared
+            )
+        )
     }
 
     var body: some View {
         ZStack {
             ScrollView {
-                Text("Add Expense")
+                Text("Edit Expense")
                     .font(Font.largeTitle)
 
                 Text("Track your spendings")
 
-                AmountTextField(amount: $viewModel.amount)
+                AmountTextField(amount: $viewModel.expense.amount)
                     .padding()
 
                 Label("Category", systemImage: "tag")
@@ -33,20 +39,34 @@ struct AddExpenseView: View {
                     .font(Font.title3)
                     .padding([.top, .leading])
 
-                CategoryGridView(expenseType: $viewModel.expenseType)
+                CategoryGridView(
+                    expenseType: Binding<ExpenseType?>(
+                        get: { viewModel.expense.expenseType },
+                        set: { newValue in
+                            if let newValue {
+                                viewModel.expense.expenseType = newValue
+                            }
+                        }
+                    )
+                )
 
-                DatePickerCard(date: $viewModel.date)
+                DatePickerCard(date: $viewModel.expense.timestamp)
                     .padding()
 
-                NoteField(note: $viewModel.note)
+                NoteField(note: $viewModel.expense.note)
 
-                Button("Add expense") {
+                Button("Edit this expense") {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                     showSuccessPopup = true
 
                     withAnimation {
-                        viewModel.saveExpense()
+                        viewModel.saveExpenseChanges()
+                    }
+
+                    // Dismiss the sheet after a short delay to let the toast appear
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        dismiss()
                     }
 
                     // Automatically hide the popup after 1.5 sec
@@ -59,7 +79,7 @@ struct AddExpenseView: View {
                 .font(.title)
                 .padding()
                 .buttonStyle(.glassProminent)
-                .disabled(viewModel.amount <= 0 || viewModel.expenseType == nil)
+                .disabled(viewModel.expense.amount <= 0.0)
             }
 
             // 2. The Popup UI
@@ -78,7 +98,7 @@ struct AddExpenseView: View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.blue)
-            Text("Expense Added!")
+            Text("Expense edited!")
                 .font(.headline)
         }
         .padding(.vertical, 12)
@@ -91,7 +111,10 @@ struct AddExpenseView: View {
 
 #Preview {
     let repository = ExpenseRepository.preview
-
-    AddExpenseView(repository: repository)
-        .modelContainer(repository.container)
+    EditExpenseView(
+        item: Expense(amount: 25.00, expenseType: .food),
+        repository: repository
+    )
+    .modelContainer(repository.container)
 }
+

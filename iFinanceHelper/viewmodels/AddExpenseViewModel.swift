@@ -24,7 +24,7 @@ class AddExpenseViewModel {
 
         repository.addExpense(expense: expense)
 
-        resetFields()
+        self.resetFields()
     }
 
     private func resetFields() {

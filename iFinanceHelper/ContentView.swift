@@ -43,6 +43,13 @@ struct ContentView: View {
 
 #Preview {
     let repository = ExpenseRepository.preview
-    ContentView(repository: repository)
+
+    repository.addExpense(expense: Expense(amount: 25.00, expenseType: .food))
+    repository.addExpense(expense: Expense(amount: 125.00, expenseType: .entertainment, note: "Movies"))
+    repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: GetDateByDaysAgo(daysAgo: 350), note: "less than a year ago"))
+    repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: GetDateByDaysAgo(daysAgo: 14), note: "less than a month ago"))
+    repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: Date(timeIntervalSince1970: TimeInterval(20)), note: "more than a year ago"))
+
+    return ContentView(repository: repository)
         .modelContainer(repository.container)
 }

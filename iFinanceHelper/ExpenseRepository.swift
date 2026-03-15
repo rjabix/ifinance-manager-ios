@@ -42,5 +42,9 @@ class ExpenseRepository {
         context.delete(expense)
     }
 
+    func saveChanges() throws {
+        try context.save()
+    }
+
     // You can also fetch manually here if needed outside of @Query
 }

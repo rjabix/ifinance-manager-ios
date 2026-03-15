@@ -20,11 +20,16 @@ func ??<T>(lhs: Binding<Optional<T>>, rhs: T) -> Binding<T> {
 }
 
 func GetFilterPredicateBasedOnDaysAgo(daysAgo: Int) -> Predicate<Expense> {
-    let calendar = Calendar.current
-    let nonNormalizedCalendarDaysAgo = calendar.date(byAdding: .day, value: daysAgo, to: .now) ?? .now
-    let normalizedCalendarDaysAgo = calendar.startOfDay(for: nonNormalizedCalendarDaysAgo)
-
+    let normalizedCalendarDaysAgo = GetDateByDaysAgo(daysAgo: daysAgo)
     return #Predicate<Expense> { expense in
         expense.timestamp >= normalizedCalendarDaysAgo
     }
+}
+
+func GetDateByDaysAgo(daysAgo: Int) -> Date {
+    let calendar = Calendar.current
+    let nonNormalizedCalendarDaysAgo = calendar.date(byAdding: .day, value: -1 * daysAgo, to: .now) ?? .now
+    let normalizedCalendarDaysAgo = calendar.startOfDay(for: nonNormalizedCalendarDaysAgo)
+
+    return normalizedCalendarDaysAgo
 }
