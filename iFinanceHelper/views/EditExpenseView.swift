@@ -79,6 +79,8 @@ struct EditExpenseView: View {
                 .font(.title)
                 .padding()
                 .buttonStyle(.glassProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.large)
                 .disabled(viewModel.expense.amount <= 0.0)
             }
 

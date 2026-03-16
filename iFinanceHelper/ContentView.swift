@@ -11,15 +11,14 @@ import SwiftData
 struct ContentView: View {
     let repository: ExpenseRepository
 
+    @State var searchText: String = ""
+
     init(repository: ExpenseRepository? = nil){
         self.repository = repository ?? .shared
     }
 
     var body: some View {
         TabView {
-            Tab(Constants.Home, systemImage: "house") {
-                HomeView()
-            }
 
             Tab(Constants.Expenses, systemImage: "dollarsign.arrow.trianglehead.counterclockwise.rotate.90") {
                 ExpensesView(repository: repository)
@@ -35,6 +34,13 @@ struct ContentView: View {
 
             Tab(Constants.Categories, systemImage: "rectangle.grid.3x2") {
                 CategoriesView()
+            }
+
+            Tab(role: .search) {
+                NavigationStack {
+                    HomeView()
+                        .searchable(text: $searchText)
+                }
             }
         }
     }

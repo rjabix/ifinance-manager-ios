@@ -17,11 +17,18 @@ struct PeriodPickerView: View {
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns) {
-            DateButton(dayPeriod: $dayPeriod, text: "Week", dayPeriodValue: 7)
-            DateButton(dayPeriod: $dayPeriod, text: "Month", dayPeriodValue: 30)
-            DateButton(dayPeriod: $dayPeriod, text: "Year", dayPeriodValue: 365)
+        Picker("Period", selection: $dayPeriod) {
+            Text("Week")
+                .font(.title)
+                .tag(7)
+            Text("Month")
+                .font(.title)
+                .tag(30)
+            Text("Year")
+                .font(.title)
+                .tag(365)
         }
+        .pickerStyle(.segmented)
     }
 
     struct DateButton: View {
