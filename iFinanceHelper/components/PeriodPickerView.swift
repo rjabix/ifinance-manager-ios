@@ -28,6 +28,7 @@ struct PeriodPickerView: View {
                 .font(.title)
                 .tag(365)
         }
+        .glassEffect(.regular, in: .rect(cornerRadius: 20))
         .pickerStyle(.segmented)
     }
 

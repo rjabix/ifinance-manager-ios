@@ -41,6 +41,7 @@ struct AmountTextField: View {
                 }
                 .padding(20)
             }
+            .glassEffect(.regular, in: .rect(cornerRadius: 20))
             .padding()
         }
     }

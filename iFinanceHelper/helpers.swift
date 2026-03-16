@@ -33,3 +33,11 @@ func GetDateByDaysAgo(daysAgo: Int) -> Date {
 
     return normalizedCalendarDaysAgo
 }
+
+func GetExpensesSum(items: [Expense]) -> Decimal {
+    return items.reduce(.zero) { $0 + $1.amount }
+}
+
+func GetExpenseTargetsSum(items: [ExpenseTypeTarget]) -> Decimal {
+    return items.reduce(.zero) { $0 + $1.targetAmount }
+}

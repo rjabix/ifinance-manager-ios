@@ -42,7 +42,7 @@ struct CategoryGridView: View {
                         .frame(maxWidth: .infinity)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
+                                .fill(isSelected ? Color.blue.opacity(0.2) : Color.clear)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
@@ -51,6 +51,7 @@ struct CategoryGridView: View {
                         .opacity(isSelected || $expenseType.wrappedValue == nil ? 1 : 0.4)
                     }
                     .buttonStyle(.plain)
+                    .glassEffect(.regular, in: .rect(cornerRadius: 20))
                 }
             }
             .padding()

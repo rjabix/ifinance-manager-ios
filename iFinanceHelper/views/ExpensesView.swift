@@ -26,12 +26,9 @@ struct ExpensesView: View {
 
     var body: some View {
         VStack {
-            Text("All expenses")
-                .font(.largeTitle)
-                .padding()
 
             PeriodPickerView(dayPeriod: $dayPeriod)
-                .padding()
+                .padding([.top, .bottom])
 
             NavigationStack {
                 ExpensesListContent(
@@ -101,14 +98,6 @@ struct ExpensesView: View {
             )
         }
 
-        private var minAmountValueBinding: Binding<Decimal> {
-            Binding(get: { minAmount ?? 0 }, set: { minAmount = $0 })
-        }
-
-        private var maxAmountValueBinding: Binding<Decimal> {
-            Binding(get: { maxAmount ?? 0 }, set: { maxAmount = $0 })
-        }
-
         var body: some View {
             List {
                 ForEach(
@@ -135,31 +124,7 @@ struct ExpensesView: View {
                         Label("Filter", systemImage: "line.3.horizontal.decrease")
                     }
                     .popover(isPresented: $isFilterMenuOpen) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Amount range").font(.headline)
-
-                            TextField("Min", value: minAmountValueBinding, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.decimalPad)
-
-                            TextField("Max", value: maxAmountValueBinding, format: .number)
-                                .textFieldStyle(.roundedBorder)
-                                .keyboardType(.decimalPad)
-
-                            Picker("Order", selection: $sortOrderDescending) {
-                                Text("Newest first").tag(true)
-                                Text("Oldest first").tag(false)
-                            }
-                            .pickerStyle(.segmented)
-
-                            Button("Clear amount filters") {
-                                minAmount = nil
-                                maxAmount = nil
-                            }
-                        }
-                        .padding()
-                        .frame(width: 280)
-                        .presentationDetents([.medium])
+                        FilterExpensesPopoverView(minAmount: $minAmount, maxAmount: $maxAmount, sortOrderDescending: $sortOrderDescending)
                     }
                 }
 

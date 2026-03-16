@@ -38,6 +38,7 @@ struct DatePickerCard: View {
                     .fill(Color.gray.opacity(0.15))
             )
         }
+        .glassEffect(.regular, in: .rect(cornerRadius: 25))
         .buttonStyle(.plain)
         .sheet(isPresented: $showPicker) {
 

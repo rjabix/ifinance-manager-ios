@@ -20,27 +20,21 @@ struct ContentView: View {
     var body: some View {
         TabView {
 
-            Tab(Constants.Expenses, systemImage: "dollarsign.arrow.trianglehead.counterclockwise.rotate.90") {
-                ExpensesView(repository: repository)
+            Tab(Constants.Analytics, systemImage: "chart.bar.xaxis") {
+                AnalyticsView()
+            }
+
+            Tab(Constants.Categories, systemImage: "tag") {
+                CategoriesView()
             }
 
             Tab(Constants.Add, systemImage: "plus.circle") {
                 AddExpenseView(repository: repository)
             }
 
-            Tab(Constants.Analytics, systemImage: "chart.bar.xaxis") {
-                AnalyticsView()
-            }
-
-            Tab(Constants.Categories, systemImage: "rectangle.grid.3x2") {
-                CategoriesView()
-            }
-
             Tab(role: .search) {
-                NavigationStack {
-                    HomeView()
-                        .searchable(text: $searchText)
-                }
+                ExpensesView(repository: repository)
+                    .searchable(text: $searchText)
             }
         }
     }

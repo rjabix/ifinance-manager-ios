@@ -27,6 +27,7 @@ struct NoteField: View {
         }
         .frame(height: 80)
         .cornerRadius(25)
+        .glassEffect(.regular, in: .rect(cornerRadius: 25))
         .overlay(
             RoundedRectangle(cornerRadius: 25)
                 .stroke(style: StrokeStyle(lineWidth: 1, dash: [2]))
