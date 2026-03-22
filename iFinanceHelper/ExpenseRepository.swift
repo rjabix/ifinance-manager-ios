@@ -14,9 +14,17 @@ class ExpenseRepository {
 
     // Create a specific instance for Previews
     static var preview: ExpenseRepository = {
-        let repo = ExpenseRepository(isStoredInMemory: true)
-        // Optionally seed with fake data here
-        return repo
+        let repository = ExpenseRepository(isStoredInMemory: true)
+
+        repository.addExpense(expense: Expense(amount: 25.00, expenseType: .food))
+        repository.addExpense(expense: Expense(amount: 125.00, expenseType: .entertainment, note: "Movies"))
+        repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: GetDateByDaysAgo(daysAgo: 1), note: "yesterday"))
+        repository.addExpense(expense: Expense(amount: 130.00, expenseType: .health, timestamp: GetDateByDaysAgo(daysAgo: 1), note: "yesterdayhealth"))
+        repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: GetDateByDaysAgo(daysAgo: 350), note: "less than a year ago"))
+        repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: GetDateByDaysAgo(daysAgo: 14), note: "less than a month ago"))
+        repository.addExpense(expense: Expense(amount: 125.00, expenseType: .transport, timestamp: Date(timeIntervalSince1970: TimeInterval(20)), note: "more than a year ago"))
+        
+        return repository
     }()
 
     let container: ModelContainer

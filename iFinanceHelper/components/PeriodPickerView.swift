@@ -18,13 +18,19 @@ struct PeriodPickerView: View {
 
     var body: some View {
         Picker("Period", selection: $dayPeriod) {
-            Text("Week")
+            Text("W")
                 .font(.title)
                 .tag(7)
-            Text("Month")
+            Text("M")
                 .font(.title)
                 .tag(30)
-            Text("Year")
+            Text("6M")
+                .font(.title)
+                .tag(180)
+            Text("YTD")
+                .font(.title)
+                .tag(Date().dayOfYear)
+            Text("Y")
                 .font(.title)
                 .tag(365)
         }

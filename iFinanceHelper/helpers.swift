@@ -41,3 +41,9 @@ func GetExpensesSum(items: [Expense]) -> Decimal {
 func GetExpenseTargetsSum(items: [ExpenseTypeTarget]) -> Decimal {
     return items.reduce(.zero) { $0 + $1.targetAmount }
 }
+
+extension Date {
+    var dayOfYear: Int {
+        return Calendar.current.ordinality(of: .day, in: .year, for: self)!
+    }
+}
