@@ -29,23 +29,21 @@ struct CategoriesView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Categories this month")
-                            .font(.largeTitle)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Categories this month")
+                        .font(.largeTitle)
 
-                        Text("Manage your budgets")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Manage your budgets")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 OverviewView(items: items, targets: targets)
-                .padding()
-                .glassEffect(.regular, in: .rect(cornerRadius: 25))
-                .padding()
+                    .padding()
+                    .glassEffect(.regular, in: .rect(cornerRadius: 25))
+                    .padding()
 
                 ForEach(ExpenseType.allCases, id: \.self) { type in
                     CategoryCardView(

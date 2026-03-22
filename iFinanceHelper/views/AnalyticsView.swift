@@ -27,19 +27,25 @@ struct AnalyticsView: View {
     }
 
     @State private var dayPeriod: Int = 7
+    @State private var pageOffset: Int = 0 // 0 = current window, -1 = previous page
     @Query private var items: [Expense]
 
     private var daySpendings: [DaySpending] {
         let calendar = Calendar.current
+        // Use the start of the day for the reference 'end' date shifted by pageOffset * dayPeriod
         let todayStart = calendar.startOfDay(for: Date())
+        let shiftedEnd = calendar.date(byAdding: .day, value: pageOffset * dayPeriod, to: todayStart) ?? todayStart
+        let windowStart = calendar.date(byAdding: .day, value: -(dayPeriod - 1), to: shiftedEnd) ?? shiftedEnd
 
+        // Group items by their start of day
         let grouped = Dictionary(grouping: items) { expense in
             calendar.startOfDay(for: expense.timestamp)
         }
 
+        // Build spendings only for days inside [windowStart, shiftedEnd]
         return grouped.compactMap { dayStart, dayItems in
-            let diff = calendar.dateComponents([.day], from: dayStart, to: todayStart).day ?? 0
-            guard diff >= 0 && diff < dayPeriod else { return nil }
+            guard dayStart >= windowStart && dayStart <= shiftedEnd else { return nil }
+            let diff = calendar.dateComponents([.day], from: dayStart, to: shiftedEnd).day ?? 0
             return DaySpending(itemsThisDay: dayItems, dayTillStartOfChart: diff)
         }
         .sorted { $0.dayTillStartOfChart < $1.dayTillStartOfChart }
@@ -59,20 +65,40 @@ struct AnalyticsView: View {
 #if DEBUG
                     Text("Days loaded: \(daySpendings.count)")
 #endif
-                    
-                    FirstBarChartView(dayPeriod: dayPeriod, spendingByDay: spendingByDay, chartHeight: geo.size.height * 0.5)
+
+                    Text("Total spendings in current time period by categories:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    TotalSpendingsByCategoriesBarChartView(
+                        pageOffset: $pageOffset,
+                        dayPeriod: dayPeriod,
+                        spendingByDay: spendingByDay,
+                        chartHeight: geo.size.height * 0.5,
+                        endDate: {
+                            let cal = Calendar.current
+                            let today = cal.startOfDay(for: Date())
+                            let candidate = cal.date(byAdding: .day, value: pageOffset * dayPeriod, to: today) ?? today
+                            return min(candidate, today)
+                        }()
+                    )
                     
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
+        .onChange(of: dayPeriod) { _, _ in
+            pageOffset = 0
+        }
     }
 
-    private struct FirstBarChartView : View {
+    private struct TotalSpendingsByCategoriesBarChartView : View {
+        @Binding var pageOffset: Int
         var dayPeriod: Int
         var spendingByDay: [Int: DaySpending]
         let chartHeight: CGFloat
+        let endDate: Date
 
         private struct CategorySpending: Identifiable {
             let id = UUID()
@@ -93,13 +119,13 @@ struct AnalyticsView: View {
                     let dayCategories = categories(for: day)
                     if dayCategories.isEmpty {
                         BarMark(
-                            x: .value("Day", GetDateByDaysAgo(daysAgo: day), unit: .day),
+                            x: .value("Day", Calendar.current.date(byAdding: .day, value: -day, to: endDate) ?? endDate, unit: .day),
                             y: .value("Spent", 0.0)
                         )
                     } else {
                         ForEach(dayCategories) { cs in
                             BarMark(
-                                x: .value("Day", GetDateByDaysAgo(daysAgo: day), unit: .day),
+                                x: .value("Day", Calendar.current.date(byAdding: .day, value: -day, to: endDate) ?? endDate, unit: .day),
                                 y: .value("Spent", cs.value)
                             )
                             .foregroundStyle(by: .value("Category", cs.categoryName))
@@ -109,6 +135,17 @@ struct AnalyticsView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: chartHeight)
+            .gesture(
+                DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        if horizontal < -40 { // swipe: go to newer page
+                            withAnimation { pageOffset = min(pageOffset + 1, 0) }
+                        } else if horizontal > 40 { // swipe - go to older page
+                            withAnimation { pageOffset -= 1 }
+                        }
+                    }
+            )
         }
     }
 }
