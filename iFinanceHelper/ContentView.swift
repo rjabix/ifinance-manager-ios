@@ -33,7 +33,7 @@ struct ContentView: View {
             }
 
             Tab(role: .search) {
-                ExpensesView(repository: repository)
+                ExpensesView(repository: repository, searchText: searchText)
                     .searchable(text: $searchText)
             }
         }

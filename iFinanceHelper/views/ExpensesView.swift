@@ -19,9 +19,12 @@ struct ExpensesView: View {
 
     let repository: ExpenseRepository
 
-    init(repository: ExpenseRepository? = nil) {
+    var searchText: String? = nil
+
+    init(repository: ExpenseRepository? = nil, searchText: String? = nil) {
         self.repository = repository ?? ExpenseRepository.shared
         _viewModel = State(wrappedValue: ExpenseViewModel(repository: self.repository))
+        self.searchText = searchText
     }
 
     var body: some View {
@@ -39,7 +42,8 @@ struct ExpensesView: View {
                     isFilterMenuOpen: $isFilterMenuOpen,
                     minAmount: $minAmount,
                     maxAmount: $maxAmount,
-                    sortOrderDescending: $sortOrderDescending
+                    sortOrderDescending: $sortOrderDescending,
+                    searchText: searchText
                 )
             }
         }
@@ -64,11 +68,14 @@ struct ExpensesView: View {
         let repository: ExpenseRepository
         let onSelect: (Expense) -> Void
         let onDelete: (Expense) -> Void
+        var searchText: String? = nil
 
         @Binding var isFilterMenuOpen: Bool
         @Binding var minAmount: Decimal?
         @Binding var maxAmount: Decimal?
         @Binding var sortOrderDescending: Bool
+
+        @State var selectedCategory: ExpenseType? = nil
 
         @Query private var items: [Expense]
 
@@ -80,7 +87,8 @@ struct ExpensesView: View {
             isFilterMenuOpen: Binding<Bool>,
             minAmount: Binding<Decimal?>,
             maxAmount: Binding<Decimal?>,
-            sortOrderDescending: Binding<Bool>
+            sortOrderDescending: Binding<Bool>,
+            searchText: String?
         ) {
             self.dayPeriod = dayPeriod
             self.repository = repository
@@ -90,6 +98,7 @@ struct ExpensesView: View {
             self._minAmount = minAmount
             self._maxAmount = maxAmount
             self._sortOrderDescending = sortOrderDescending
+            self.searchText = searchText
 
             _items = Query(
                 filter: GetFilterPredicateBasedOnDaysAgo(daysAgo: dayPeriod),
@@ -104,7 +113,10 @@ struct ExpensesView: View {
                     items.filter { exp in
                         let minOk = minAmount.map { exp.amount >= $0 } ?? true
                         let maxOk = maxAmount.map { exp.amount <= $0 } ?? true
-                        return minOk && maxOk
+                        let categoryOk = exp.expenseType == selectedCategory || selectedCategory == nil
+                        let query = (searchText ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                        let textOk = query.isEmpty || (exp.note?.localizedCaseInsensitiveContains(query) ?? false)
+                        return minOk && maxOk && categoryOk && textOk
                     }
                 ) { item in
                     Button {
@@ -124,7 +136,7 @@ struct ExpensesView: View {
                         Label("Filter", systemImage: "line.3.horizontal.decrease")
                     }
                     .popover(isPresented: $isFilterMenuOpen) {
-                        FilterExpensesPopoverView(minAmount: $minAmount, maxAmount: $maxAmount, sortOrderDescending: $sortOrderDescending)
+                        FilterExpensesPopoverView(minAmount: $minAmount, maxAmount: $maxAmount, sortOrderDescending: $sortOrderDescending, selectedCategory: $selectedCategory)
                     }
                 }
 

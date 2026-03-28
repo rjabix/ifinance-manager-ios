@@ -82,10 +82,6 @@ struct AnalyticsView: View {
                 VStack {
                     PeriodPickerView(dayPeriod: $dayPeriod)
                         .padding([.top, .bottom])
-                    
-#if DEBUG
-                    Text("Days loaded: \(daySpendings.count)")
-#endif
 
                     Text("Total spendings in current time period by categories:")
                         .font(.caption)

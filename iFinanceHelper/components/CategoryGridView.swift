@@ -27,7 +27,12 @@ struct CategoryGridView: View {
                     let isSelected = $expenseType.wrappedValue == type
 
                     Button {
-                        $expenseType.wrappedValue = type
+                        if (expenseType == type) {
+                            $expenseType.wrappedValue = nil
+                        }
+                        else {
+                            $expenseType.wrappedValue = type
+                        }
                     } label: {
 
                         VStack(spacing: 10) {
