@@ -121,6 +121,10 @@ struct AnalyticsView: View {
                         items: items,
                         chartHeight: geo.size.height * 0.5)
 
+                    Divider()
+
+                    RecordsView(items: items, dayPeriod: dayPeriod, pageOffset: pageOffset)
+
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -350,6 +354,138 @@ struct AnalyticsView: View {
             .frame(maxWidth: .infinity)
             .frame(height: chartHeight)
             .padding()
+        }
+    }
+
+    private struct RecordsView: View {
+        var items: [Expense]
+        var dayPeriod: Int
+        var pageOffset: Int
+
+        private var calendar: Calendar { .current }
+
+        private var windowBounds: (start: Date, endInclusive: Date, endExclusive: Date) {
+            let todayStart = calendar.startOfDay(for: Date())
+            let endInclusive = calendar.date(byAdding: .day, value: dayPeriod * pageOffset, to: todayStart) ?? todayStart
+            let start = calendar.date(byAdding: .day, value: -(dayPeriod - 1), to: endInclusive) ?? endInclusive
+            let endExclusive = calendar.date(byAdding: .day, value: 1, to: endInclusive) ?? endInclusive
+            return (start, endInclusive, endExclusive)
+        }
+
+        private var filteredItems: [Expense] {
+            let bounds = windowBounds
+            return items.filter { expense in
+                expense.timestamp >= bounds.start && expense.timestamp < bounds.endExclusive
+            }
+        }
+
+        private var biggestTransaction: Expense? {
+            filteredItems.max {
+                NSDecimalNumber(decimal: $0.amount).doubleValue < NSDecimalNumber(decimal: $1.amount).doubleValue
+            }
+        }
+
+        private var mostSpentDaySummary: (day: Date, total: Decimal, topCategory: ExpenseType?, topCategoryAmount: Decimal)? {
+            guard !filteredItems.isEmpty else { return nil }
+
+            let groupedByDay = Dictionary(grouping: filteredItems) { expense in
+                calendar.startOfDay(for: expense.timestamp)
+            }
+
+            guard let bestDayEntry = groupedByDay.max(by: { lhs, rhs in
+                let lhsTotal = lhs.value.reduce(Decimal.zero) { $0 + $1.amount }
+                let rhsTotal = rhs.value.reduce(Decimal.zero) { $0 + $1.amount }
+                return lhsTotal < rhsTotal
+            }) else {
+                return nil
+            }
+
+            let day = bestDayEntry.key
+            let dayItems = bestDayEntry.value
+            let dayTotal = dayItems.reduce(Decimal.zero) { $0 + $1.amount }
+
+            let topCategoryMap = dayItems.reduce(into: [ExpenseType: Decimal]()) { map, expense in
+                map[expense.expenseType, default: .zero] += expense.amount
+            }
+
+            let topCategoryEntry = topCategoryMap.max(by: { $0.value < $1.value })
+
+            return (
+                day: day,
+                total: dayTotal,
+                topCategory: topCategoryEntry?.key,
+                topCategoryAmount: topCategoryEntry?.value ?? .zero
+            )
+        }
+
+        private func formatDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .full
+            formatter.timeStyle = .none
+            return formatter.string(from: date)
+        }
+
+        private func formatAmount(_ amount: Decimal) -> String {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            return formatter.string(from: amount as NSDecimalNumber) ?? "\(amount)"
+        }
+
+        var body: some View {
+            VStack(spacing: 10) {
+                GroupBox("Most spent day") {
+                    if let summary = mostSpentDaySummary {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(formatDate(summary.day))
+                                .font(.subheadline.weight(.semibold))
+                            Text("Total: \(formatAmount(summary.total))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            if let category = summary.topCategory {
+                                HStack(spacing: 6) {
+                                    Image(systemName: Constants.TypeToSystemImageString[category] ?? "questionmark.circle")
+                                        .foregroundStyle(AnalyticsView.colorFor(category))
+                                    Text("Top category: \(category.rawValue) (\(formatAmount(summary.topCategoryAmount)))")
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Text("No records in this period")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+
+                GroupBox("Biggest transaction") {
+                    if let tx = biggestTransaction {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(formatAmount(tx.amount))
+                                .font(.subheadline.weight(.semibold))
+                            Text(formatDate(tx.timestamp))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            HStack(spacing: 6) {
+                                Image(systemName: Constants.TypeToSystemImageString[tx.expenseType] ?? "questionmark.circle")
+                                    .foregroundStyle(AnalyticsView.colorFor(tx.expenseType))
+                                Text("Category: \(tx.expenseType.rawValue)")
+                                    .font(.caption)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        Text("No records in this period")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
