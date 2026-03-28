@@ -70,7 +70,7 @@ struct AnalyticsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    TotalSpendingsByCategoriesBarChartView(
+                    TotalTimelineSpendingsByCategoriesBarChartView(
                         pageOffset: $pageOffset,
                         dayPeriod: dayPeriod,
                         spendingByDay: spendingByDay,
@@ -82,18 +82,28 @@ struct AnalyticsView: View {
                             return min(candidate, today)
                         }()
                     )
-                    
+
+                    Divider()
+
+                    TotalCategorySpendingDonutChartView(
+                        pageOffset: $pageOffset,
+                        dayPeriod: dayPeriod,
+                        items: items,
+                        chartHeight: geo.size.height * 0.5)
+
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
         .onChange(of: dayPeriod) { _, _ in
-            pageOffset = 0
+            withAnimation {
+                pageOffset = 0
+            }
         }
     }
 
-    private struct TotalSpendingsByCategoriesBarChartView : View {
+    private struct TotalTimelineSpendingsByCategoriesBarChartView : View {
         @Binding var pageOffset: Int
         var dayPeriod: Int
         var spendingByDay: [Int: DaySpending]
@@ -135,6 +145,73 @@ struct AnalyticsView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: chartHeight)
+            .gesture(
+                DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        if horizontal < -40 { // swipe: go to newer page
+                            withAnimation { pageOffset = min(pageOffset + 1, 0) }
+                        } else if horizontal > 40 { // swipe - go to older page
+                            withAnimation { pageOffset -= 1 }
+                        }
+                    }
+            )
+        }
+    }
+
+    private struct TotalCategorySpendingDonutChartView : View {
+        @Binding var pageOffset: Int
+        var dayPeriod: Int
+        var items: [Expense]
+        let chartHeight: CGFloat
+
+        var mostSpentCaregory: ExpenseType? = nil
+        var mostSpentCategoryAmount: Decimal = -1
+
+        var body: some View {
+            Chart(ExpenseType.allCases, id: \.self) { type in
+                let calendar = Calendar.current
+                let todayStart = calendar.startOfDay(for: Date())
+                let windowEnd = calendar.date(byAdding: .day, value: dayPeriod * pageOffset, to: todayStart) ?? todayStart
+                let windowStart = calendar.date(byAdding: .day, value: -(dayPeriod - 1), to: windowEnd) ?? windowEnd
+
+                let filteredItems: [Expense] = items.filter { expense in
+                    guard expense.expenseType == type else { return false }
+                    let ts = expense.timestamp
+                    return ts >= windowStart && ts < calendar.date(byAdding: .day, value: 1, to: windowEnd)!
+                }
+
+                let categoryAmount = GetExpensesSum(items: filteredItems)
+
+                //                if (categoryAmount > mostSpentCategoryAmount){
+                //                    self.mostSpentCaregory = type
+                //                }
+
+                SectorMark(
+                    angle: .value("Category", categoryAmount),
+                    innerRadius: .ratio(0.618),
+                    angularInset: 1.5
+                )
+                .cornerRadius(5)
+                .foregroundStyle(by: .value(type.rawValue, type.rawValue))
+            }
+            .chartBackground { chartProxy in
+                GeometryReader { geometry in
+                    let frame = geometry[chartProxy.plotFrame!]
+                    VStack {
+                        Text("Most spent on")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        Text(mostSpentCaregory?.rawValue ?? "N/A")
+                            .font(.title2.bold())
+                            .foregroundStyle(.primary)
+                    }
+                    .position(x: frame.midX, y: frame.midY)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: chartHeight)
+            .padding()
             .gesture(
                 DragGesture(minimumDistance: 20, coordinateSpace: .local)
                     .onEnded { value in

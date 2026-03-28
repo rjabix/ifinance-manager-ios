@@ -9,8 +9,10 @@ import Foundation
 import SwiftData
 
 @Model
-final class Expense {
+final class Expense : Identifiable{
 
+    public var Id: UUID = UUID()
+    
     public var timestamp: Date
 
     public var amount: Decimal

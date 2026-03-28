@@ -37,38 +37,6 @@ struct PeriodPickerView: View {
         .glassEffect(.regular, in: .rect(cornerRadius: 20))
         .pickerStyle(.segmented)
     }
-
-    struct DateButton: View {
-        @Binding var dayPeriod: Int
-
-        let text: String
-        let dayPeriodValue: Int
-
-        private var isSelected: Bool {
-            dayPeriod == dayPeriodValue
-        }
-
-        var body: some View {
-            Button {
-                dayPeriod = dayPeriodValue
-            } label: {
-                Text(text)
-                    .font(.headline)
-                    .frame(height: 45)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.15))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
-                    )
-                    .opacity(isSelected ? 1 : 0.4)
-            }
-            .buttonStyle(.plain)
-        }
-    }
 }
 
 #Preview {

@@ -28,7 +28,7 @@ struct ExpensesView: View {
         VStack {
 
             PeriodPickerView(dayPeriod: $dayPeriod)
-                .padding([.top, .bottom])
+                .padding()
 
             NavigationStack {
                 ExpensesListContent(
