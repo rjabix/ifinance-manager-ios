@@ -459,7 +459,7 @@ struct AnalyticsView: View {
                 GroupBox("Biggest transaction") {
                     if let tx = biggestTransaction {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(formatAmount(tx.amount))
+                            Text("\(tx.note != nil && !tx.note!.isEmpty ? tx.note! + ": " : "")\(formatAmount(tx.amount))")
                                 .font(.subheadline.weight(.semibold))
                             Text(formatDate(tx.timestamp))
                                 .font(.caption)
