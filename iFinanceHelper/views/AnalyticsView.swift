@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Charts
+import Foundation
 
 struct AnalyticsView: View {
 
@@ -103,7 +104,16 @@ struct AnalyticsView: View {
                         }()
                     )
 
+                    Spacer()
+
                     Divider()
+                        .padding([.top])
+
+                    LegendView()
+
+                    Divider()
+
+                    Spacer()
 
                     TotalCategorySpendingDonutChartView(
                         pageOffset: $pageOffset,
@@ -123,12 +133,42 @@ struct AnalyticsView: View {
         }
     }
 
+    private struct LegendView: View {
+        private let columns = [
+            GridItem(.flexible(), alignment: .leading),
+            GridItem(.flexible(), alignment: .leading),
+            GridItem(.flexible(), alignment: .leading)
+        ]
+
+        var body: some View {
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(ExpenseType.allCases, id: \.self) { type in
+                    HStack(alignment: .center, spacing: 8) {
+                        Circle()
+                            .fill(AnalyticsView.colorFor(type))
+                            .frame(width: 18, height: 18)
+
+                        Text(type.rawValue.capitalized)
+                            .font(.caption)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     private struct TotalTimelineSpendingsByCategoriesBarChartView : View {
         @Binding var pageOffset: Int
         var dayPeriod: Int
         var spendingByDay: [Int: DaySpending]
         let chartHeight: CGFloat
         let endDate: Date
+
+        @State var rawSelectedDate: Date?
 
         private struct CategorySpending: Identifiable {
             let id = UUID()
@@ -163,7 +203,17 @@ struct AnalyticsView: View {
                         }
                     }
                 }
+
+                if let rawSelectedDate {
+                    RuleMark(x: .value("Selected", rawSelectedDate, unit: .day))
+                        .foregroundStyle(Color.gray.opacity(0.3))
+                        .zIndex(-1)
+                        .annotation(position: .top, overflowResolution: .init(x: .fit(to: .chart), y: .disabled)) {
+                            LineMarkPopoverView(rawSelectedDate: rawSelectedDate, dayCategories: categories(for: dayIndex(from: rawSelectedDate)))
+                        }
+                }
             }
+            .chartXSelection(value: $rawSelectedDate)
             .frame(maxWidth: .infinity)
             .frame(height: chartHeight)
             .gesture(
@@ -177,6 +227,46 @@ struct AnalyticsView: View {
                         }
                     }
             )
+        }
+
+        private struct LineMarkPopoverView: View {
+            var rawSelectedDate: Date
+            var dayCategories: [CategorySpending]
+
+            var body: some View {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateStyle = .medium
+                dateFormatter.timeStyle = .none
+
+                return VStack {
+                    Text(dateFormatter.string(from: rawSelectedDate))
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+
+                    HStack {
+                        ForEach(dayCategories.sorted {$0.value > $1.value}) { dayCategory in
+                            Image(systemName: Constants.TypeToSystemImageString[dayCategory.type]!)
+                                .foregroundStyle(Color(AnalyticsView.colorFor(dayCategory.type)))
+                            Text(String(describing: dayCategory.value))
+                                .font(.caption)
+                        }
+                    }
+                }
+                .padding(3.5)
+                .background(Color(.systemBackground))
+                .glassEffect()
+            }
+        }
+
+        private func dayIndex(from selectedDate: Date) -> Int {
+            let cal = Calendar.current
+            let end = cal.startOfDay(for: endDate)
+            let selected = cal.startOfDay(for: selectedDate)
+            // selected == end -> 0, selected one day before end -> 1, etc.
+            let diff = cal.dateComponents([.day], from: selected, to: end).day ?? 0
+            // Keep index in valid range for `categories(for:)`
+            return min(max(diff, 0), dayPeriod - 1)
         }
     }
 
@@ -234,6 +324,12 @@ struct AnalyticsView: View {
                 )
                 .cornerRadius(5)
                 .foregroundStyle(AnalyticsView.colorFor(type))
+                .annotation(position: .overlay) {
+                    if (categoryAmount > 0) {
+                        Text(String(describing: categoryAmount))
+                            .foregroundStyle(Color(.white))
+                    }
+                }
             }
             .chartBackground { chartProxy in
                 GeometryReader { geometry in
@@ -242,9 +338,11 @@ struct AnalyticsView: View {
                         Text("Most spent on")
                             .font(.callout)
                             .foregroundStyle(.secondary)
-                        Text(getMostSpentCategory()?.rawValue ?? "N/A")
+
+                        let mostSpentCategory = getMostSpentCategory()
+                        Label(mostSpentCategory?.rawValue ?? "N/A", systemImage: mostSpentCategory != nil ? Constants.TypeToSystemImageString[mostSpentCategory!]! : "")
                             .font(.title2.bold())
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(mostSpentCategory != nil ? AnalyticsView.colorFor(mostSpentCategory!) : .primary)
                     }
                     .position(x: frame.midX, y: frame.midY)
                 }
@@ -252,17 +350,6 @@ struct AnalyticsView: View {
             .frame(maxWidth: .infinity)
             .frame(height: chartHeight)
             .padding()
-            .gesture(
-                DragGesture(minimumDistance: 20, coordinateSpace: .local)
-                    .onEnded { value in
-                        let horizontal = value.translation.width
-                        if horizontal < -40 { // swipe: go to newer page
-                            withAnimation { pageOffset = min(pageOffset + 1, 0) }
-                        } else if horizontal > 40 { // swipe - go to older page
-                            withAnimation { pageOffset -= 1 }
-                        }
-                    }
-            )
         }
     }
 }
