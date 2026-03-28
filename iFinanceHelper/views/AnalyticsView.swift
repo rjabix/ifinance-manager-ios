@@ -30,6 +30,26 @@ struct AnalyticsView: View {
     @State private var pageOffset: Int = 0 // 0 = current window, -1 = previous page
     @Query private var items: [Expense]
 
+    // Consistent colors for categories across charts
+    private static let categoryColors: [ExpenseType: Color] = {
+        var map: [ExpenseType: Color] = [:]
+        let base: [Color] = [
+            .blue, .green, .orange, .pink, .purple, .teal, .red, .indigo, .yellow, .mint, .cyan, .brown
+        ]
+        for (idx, type) in ExpenseType.allCases.enumerated() {
+            map[type] = base[idx % base.count]
+        }
+        return map
+    }()
+
+    private func color(for type: ExpenseType) -> Color {
+        AnalyticsView.categoryColors[type] ?? .accentColor
+    }
+
+    private static func colorFor(_ type: ExpenseType) -> Color {
+        categoryColors[type] ?? .accentColor
+    }
+
     private var daySpendings: [DaySpending] {
         let calendar = Calendar.current
         // Use the start of the day for the reference 'end' date shifted by pageOffset * dayPeriod
@@ -112,6 +132,7 @@ struct AnalyticsView: View {
 
         private struct CategorySpending: Identifiable {
             let id = UUID()
+            let type: ExpenseType
             let categoryName: String
             let value: Double
         }
@@ -119,7 +140,7 @@ struct AnalyticsView: View {
         private func categories(for day: Int) -> [CategorySpending] {
             guard let spending = spendingByDay[day] else { return [] }
             return spending.spendingPerCategory.map { key, value in
-                CategorySpending(categoryName: String(describing: key), value: value)
+                CategorySpending(type: key, categoryName: String(describing: key), value: value)
             }
         }
 
@@ -138,7 +159,7 @@ struct AnalyticsView: View {
                                 x: .value("Day", Calendar.current.date(byAdding: .day, value: -day, to: endDate) ?? endDate, unit: .day),
                                 y: .value("Spent", cs.value)
                             )
-                            .foregroundStyle(by: .value("Category", cs.categoryName))
+                            .foregroundStyle(AnalyticsView.colorFor(cs.type))
                         }
                     }
                 }
@@ -165,8 +186,31 @@ struct AnalyticsView: View {
         var items: [Expense]
         let chartHeight: CGFloat
 
-        var mostSpentCaregory: ExpenseType? = nil
-        var mostSpentCategoryAmount: Decimal = -1
+        private func getMostSpentCategory() -> ExpenseType? {
+            var mostSpentAmount: Decimal = 0
+            var mostSpentType: ExpenseType? = nil
+
+            let calendar = Calendar.current
+            let todayStart = calendar.startOfDay(for: Date())
+            let windowEnd = calendar.date(byAdding: .day, value: dayPeriod * pageOffset, to: todayStart) ?? todayStart
+            let windowStart = calendar.date(byAdding: .day, value: -(dayPeriod - 1), to: windowEnd) ?? windowEnd
+
+            for type in ExpenseType.allCases {
+                let filteredItems: [Expense] = items.filter { expense in
+                    guard expense.expenseType == type else { return false }
+                    let ts = expense.timestamp
+                    return ts >= windowStart && ts < calendar.date(byAdding: .day, value: 1, to: windowEnd)!
+                }
+
+                let sum = GetExpensesSum(items: filteredItems)
+                if sum > mostSpentAmount {
+                    mostSpentType = type
+                    mostSpentAmount = sum
+                }
+            }
+
+            return mostSpentType
+        }
 
         var body: some View {
             Chart(ExpenseType.allCases, id: \.self) { type in
@@ -183,17 +227,13 @@ struct AnalyticsView: View {
 
                 let categoryAmount = GetExpensesSum(items: filteredItems)
 
-                //                if (categoryAmount > mostSpentCategoryAmount){
-                //                    self.mostSpentCaregory = type
-                //                }
-
                 SectorMark(
                     angle: .value("Category", categoryAmount),
                     innerRadius: .ratio(0.618),
                     angularInset: 1.5
                 )
                 .cornerRadius(5)
-                .foregroundStyle(by: .value(type.rawValue, type.rawValue))
+                .foregroundStyle(AnalyticsView.colorFor(type))
             }
             .chartBackground { chartProxy in
                 GeometryReader { geometry in
@@ -202,7 +242,7 @@ struct AnalyticsView: View {
                         Text("Most spent on")
                             .font(.callout)
                             .foregroundStyle(.secondary)
-                        Text(mostSpentCaregory?.rawValue ?? "N/A")
+                        Text(getMostSpentCategory()?.rawValue ?? "N/A")
                             .font(.title2.bold())
                             .foregroundStyle(.primary)
                     }
