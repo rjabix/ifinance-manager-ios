@@ -121,6 +121,9 @@ struct AnalyticsView: View {
 
                     RecordsView(items: items, dayPeriod: dayPeriod, pageOffset: pageOffset)
 
+                    Divider()
+
+                    LearnButtonView()
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -238,7 +241,7 @@ struct AnalyticsView: View {
                 dateFormatter.dateStyle = .medium
                 dateFormatter.timeStyle = .none
 
-                return VStack {
+                return GroupBox {
                     Text(dateFormatter.string(from: rawSelectedDate))
                         .font(.caption2)
                         .padding(.horizontal, 8)
@@ -253,9 +256,6 @@ struct AnalyticsView: View {
                         }
                     }
                 }
-                .padding(3.5)
-                .background(Color(.systemBackground))
-                .glassEffect()
             }
         }
 
@@ -482,6 +482,33 @@ struct AnalyticsView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private struct LearnButtonView : View {
+        @State private var showLearnView: Bool = false
+
+        var body: some View {
+            Button("Learn how to improve your finances managing") {
+                showLearnView = true
+            }
+            .padding()
+            .fullScreenCover(isPresented: $showLearnView) {
+                NavigationStack {
+                    LearnView()
+                        .navigationTitle("Learn")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button {
+                                    showLearnView = false
+                                } label: {
+                                    Label("Back", systemImage: "chevron.backward")
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 }

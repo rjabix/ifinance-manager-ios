@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 struct AddExpenseView: View {
     @State var viewModel: AddExpenseViewModel
@@ -43,6 +44,7 @@ struct AddExpenseView: View {
                 Button("Add expense") {
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
+                    AudioServicesPlayAlertSound(SystemSoundID(1407))
                     showSuccessPopup = true
 
                     withAnimation {

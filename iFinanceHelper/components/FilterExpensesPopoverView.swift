@@ -27,15 +27,26 @@ struct FilterExpensesPopoverView: View {
 
             CategoryGridView(expenseType: $selectedCategory)
 
-            Text("Amount range").font(.headline)
+            Text("Amount range")
+                .font(.headline)
+                .padding(.top)
 
-            TextField("Min", value: minAmountValueBinding, format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.decimalPad)
-
-            TextField("Max", value: maxAmountValueBinding, format: .number)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.decimalPad)
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                GridRow {
+                    Text("From")
+                        .gridColumnAlignment(.trailing)
+                    TextField("Min", value: minAmountValueBinding, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.decimalPad)
+                }
+                GridRow {
+                    Text("To")
+                        .gridColumnAlignment(.trailing)
+                    TextField("Max", value: maxAmountValueBinding, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.decimalPad)
+                }
+            }
 
             Picker("Order", selection: $sortOrderDescending) {
                 Text("Newest first").tag(true)
