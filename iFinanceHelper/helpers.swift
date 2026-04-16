@@ -69,7 +69,7 @@ func GetTags(items: [Expense]) -> [String] {
         // Tokenize and filter out tokens containing digits and 1-letter tokens
         let digitSet = CharacterSet.decimalDigits
         let tokens = cleaned.split(separator: " ")
-            .map { String($0) }
+            .map { String($0).capitalized }
             .filter { $0.count > 1 && $0.rangeOfCharacter(from: digitSet) == nil }
 
         // Count each word at most once per item

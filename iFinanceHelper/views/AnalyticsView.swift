@@ -29,26 +29,23 @@ struct AnalyticsView: View {
 
     @State private var dayPeriod: Int = 7
     @State private var pageOffset: Int = 0 // 0 = current window, -1 = previous page
-    @Query private var items: [Expense]
+    @Query private var allItems: [Expense]
+    @State private var searchText: String = ""
 
-    // Consistent colors for categories across charts
-    private static let categoryColors: [ExpenseType: Color] = {
-        var map: [ExpenseType: Color] = [:]
-        let base: [Color] = [
-            .blue, .green, .orange, .pink, .purple, .teal, .red, .indigo, .yellow, .mint, .cyan, .brown
-        ]
-        for (idx, type) in ExpenseType.allCases.enumerated() {
-            map[type] = base[idx % base.count]
+    private var items: [Expense] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return allItems }
+        return allItems.filter { expense in
+            (expense.note?.lowercased().contains(query) ?? false)
         }
-        return map
-    }()
+    }
 
     private func color(for type: ExpenseType) -> Color {
-        AnalyticsView.categoryColors[type] ?? .accentColor
+        Constants.TypeToColor[type] ?? .accentColor
     }
 
     private static func colorFor(_ type: ExpenseType) -> Color {
-        categoryColors[type] ?? .accentColor
+        Constants.TypeToColor[type] ?? .accentColor
     }
 
     private var daySpendings: [DaySpending] {
@@ -78,55 +75,58 @@ struct AnalyticsView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ScrollView {
-                VStack {
-                    PeriodPickerView(dayPeriod: $dayPeriod)
-                        .padding([.top, .bottom])
+            NavigationStack {
+                ScrollView {
+                    VStack {
+                        PeriodPickerView(dayPeriod: $dayPeriod)
+                            .padding([.top, .bottom])
 
-                    Text("Total spendings in current time period by categories:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        Text("Total spendings in current time period by categories:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
 
-                    TotalTimelineSpendingsByCategoriesBarChartView(
-                        pageOffset: $pageOffset,
-                        dayPeriod: dayPeriod,
-                        spendingByDay: spendingByDay,
-                        chartHeight: geo.size.height * 0.5,
-                        endDate: {
-                            let cal = Calendar.current
-                            let today = cal.startOfDay(for: Date())
-                            let candidate = cal.date(byAdding: .day, value: pageOffset * dayPeriod, to: today) ?? today
-                            return min(candidate, today)
-                        }()
-                    )
+                        TotalTimelineSpendingsByCategoriesBarChartView(
+                            pageOffset: $pageOffset,
+                            dayPeriod: dayPeriod,
+                            spendingByDay: spendingByDay,
+                            chartHeight: geo.size.height * 0.5,
+                            endDate: {
+                                let cal = Calendar.current
+                                let today = cal.startOfDay(for: Date())
+                                let candidate = cal.date(byAdding: .day, value: pageOffset * dayPeriod, to: today) ?? today
+                                return min(candidate, today)
+                            }()
+                        )
 
-                    Spacer()
+                        Spacer()
 
-                    Divider()
-                        .padding([.top])
+                        Divider()
+                            .padding([.top])
 
-                    LegendView()
+                        LegendView()
 
-                    Divider()
+                        Divider()
 
-                    Spacer()
+                        Spacer()
 
-                    TotalCategorySpendingDonutChartView(
-                        pageOffset: $pageOffset,
-                        dayPeriod: dayPeriod,
-                        items: items,
-                        chartHeight: geo.size.height * 0.5)
+                        TotalCategorySpendingDonutChartView(
+                            pageOffset: $pageOffset,
+                            dayPeriod: dayPeriod,
+                            items: items,
+                            chartHeight: geo.size.height * 0.5)
 
-                    Divider()
+                        Divider()
 
-                    RecordsView(items: items, dayPeriod: dayPeriod, pageOffset: pageOffset)
+                        RecordsView(items: items, dayPeriod: dayPeriod, pageOffset: pageOffset)
 
-                    Divider()
+                        Divider()
 
-                    LearnButtonView()
+                        LearnButtonView()
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .searchable(text: $searchText)
             }
         }
         .onChange(of: dayPeriod) { _, _ in

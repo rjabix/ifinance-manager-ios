@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct Constants {
     static let Home: String = "Home"
@@ -30,5 +31,14 @@ struct Constants {
         .entertainment: "Entertainment",
         .health: "Health",
         .other: "Other"
+    ]
+
+    static let TypeToColor: [ExpenseType: Color] = [
+        .food: .green,
+        .transport: .blue,
+        .shopping: .yellow,
+        .entertainment: .orange,
+        .health: .purple,
+        .other: .mint
     ]
 }

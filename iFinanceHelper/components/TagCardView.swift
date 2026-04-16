@@ -56,7 +56,7 @@ struct TagCardView: View {
         }
         .onChange(of: selectedText) { _, _ in
             // Keep toggle in sync with external changes to selectedText (e.g., Clear button)
-            let nowSelected = selectedText.components(separatedBy: .whitespaces).contains(where: { $0 == text })
+            let nowSelected = selectedText.lowercased().components(separatedBy: .whitespaces).contains(where: { $0 == text.lowercased() })
             if nowSelected != isSelected {
                 isSelected = nowSelected
             }
