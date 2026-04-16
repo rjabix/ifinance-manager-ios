@@ -8,14 +8,18 @@
 import SwiftUI
 import SwiftData
 import AVFoundation
+import Fit
 
 struct AddExpenseView: View {
     @State var viewModel: AddExpenseViewModel
 
     @State private var showSuccessPopup: Bool = false
 
+    @Query var items: [Expense]
+
     init(repository: ExpenseRepository? = nil) {
         _viewModel = State(wrappedValue: AddExpenseViewModel(repository: repository ?? ExpenseRepository.shared))
+        _items = Query(filter: GetFilterPredicateBasedOnDaysAgo(daysAgo: 7))
     }
 
     var body: some View {
@@ -40,6 +44,12 @@ struct AddExpenseView: View {
                     .padding()
 
                 NoteField(note: $viewModel.note)
+
+                Fit {
+                    ForEach(GetTags(items: items), id: \.self) { tag in
+                        TagCardView(text: tag, selectedText: $viewModel.note ?? "")
+                    }
+                }
 
                 Button("Add expense") {
                     let generator = UINotificationFeedbackGenerator()

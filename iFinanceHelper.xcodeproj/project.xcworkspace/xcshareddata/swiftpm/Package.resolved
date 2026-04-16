@@ -1,0 +1,15 @@
+{
+  "originHash" : "4e7b563fdb19986150c0903d0ebd4d0297eafb5d4ef7123d645b577ca878a7fd",
+  "pins" : [
+    {
+      "identity" : "fit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OlehKorchytskyi/Fit",
+      "state" : {
+        "revision" : "701b55b29197fe816325a567cc37c61972033796",
+        "version" : "1.0.2"
+      }
+    }
+  ],
+  "version" : 3
+}

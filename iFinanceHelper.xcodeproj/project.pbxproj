@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		63734E462F79B3EA0061B76B /* guide.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 63734E452F79B3EA0061B76B /* guide.mp4 */; };
+		63D14F292F9176D8003CDD5C /* Fit in Frameworks */ = {isa = PBXBuildFile; productRef = 63D14F282F9176D8003CDD5C /* Fit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63D14F292F9176D8003CDD5C /* Fit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			);
 			name = iFinanceHelper;
 			packageProductDependencies = (
+				63D14F282F9176D8003CDD5C /* Fit */,
 			);
 			productName = iFinanceHelper;
 			productReference = 635D284B2F64BD8900D756CB /* iFinanceHelper.app */;
@@ -100,6 +103,9 @@
 			);
 			mainGroup = 635D28422F64BD8900D756CB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				63D14F272F9176D8003CDD5C /* XCRemoteSwiftPackageReference "Fit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 635D284C2F64BD8900D756CB /* Products */;
 			projectDirPath = "";
@@ -341,6 +347,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		63D14F272F9176D8003CDD5C /* XCRemoteSwiftPackageReference "Fit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/OlehKorchytskyi/Fit";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 1.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		63D14F282F9176D8003CDD5C /* Fit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 63D14F272F9176D8003CDD5C /* XCRemoteSwiftPackageReference "Fit" */;
+			productName = Fit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 635D28432F64BD8900D756CB /* Project object */;
 }

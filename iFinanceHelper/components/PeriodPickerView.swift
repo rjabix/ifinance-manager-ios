@@ -10,12 +10,6 @@ import SwiftUI
 struct PeriodPickerView: View {
     @Binding var dayPeriod: Int
 
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-
     var body: some View {
         Picker("Period", selection: $dayPeriod) {
             Text("W")
