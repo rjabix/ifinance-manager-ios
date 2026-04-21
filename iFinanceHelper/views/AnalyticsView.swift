@@ -238,8 +238,7 @@ struct AnalyticsView: View {
 
             var body: some View {
                 let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .medium
-                dateFormatter.timeStyle = .none
+                dateFormatter.setLocalizedDateFormatFromTemplate("EEE, MMM d, y")
 
                 return GroupBox {
                     Text(dateFormatter.string(from: rawSelectedDate))
