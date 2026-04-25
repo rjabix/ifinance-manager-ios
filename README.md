@@ -5,14 +5,14 @@ Swift native iOS app that help you woth tracking your spendings.
 This app helps you collect, analyze your spending to know better where your money are going.
 
 # Pages:
+Full video preview: [![Watch demo on YouTube](https://youtu.be/sy6EwiMdvfY?si=JpwCNZp8gDqu2cJ4)]
+
 ### 1. Add expense page.
 Here you can specify the amount, roughly describe category, date and optionally add a small note.
 You can add a unique note or select from suggested notes based on latest expenses.
-<div style="display: flex; gap: 10px;">
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 51 56" src="https://github.com/user-attachments/assets/dcf31c63-10e2-4d6c-8045-f3a35aba1f26" />
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 52 20" src="https://github.com/user-attachments/assets/0b44ae89-3ac3-44df-a3dd-69d74dfe7dd3" />
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 52 04" src="https://github.com/user-attachments/assets/9dd090be-93c7-450a-988b-97cc864d1c9a" />
-</div>
+|  |  |  |
+|--|--|--|
+| <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 51 56" src="https://github.com/user-attachments/assets/dcf31c63-10e2-4d6c-8045-f3a35aba1f26" /> | <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 52 20" src="https://github.com/user-attachments/assets/0b44ae89-3ac3-44df-a3dd-69d74dfe7dd3" /> | <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 52 04" src="https://github.com/user-attachments/assets/9dd090be-93c7-450a-988b-97cc864d1c9a" />
 
 ### 2. Categories page
 This page gives you insights into the spending by categories in the last month.
@@ -51,11 +51,9 @@ On this page you are able to look at all the recorded expenses as in the list.
 
 You can choose the timeperiod, filter by category and choose the order and text search by the text in notes:
 
-<div style="display: flex; gap: 10px;">
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 55 20" src="https://github.com/user-attachments/assets/dcd22fd1-7ddf-436f-a8f7-08e1daa53763" />
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 55 24" src="https://github.com/user-attachments/assets/722a4abd-b290-41f8-8811-7bee923e6fe1" />
-  <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 56 02" src="https://github.com/user-attachments/assets/71421c24-0feb-4105-8c13-cb9593a4fa38" />
-</div>
+|  |  |  |
+|--|--|--|
+| <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 55 20" src="https://github.com/user-attachments/assets/dcd22fd1-7ddf-436f-a8f7-08e1daa53763" /> | <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 55 24" src="https://github.com/user-attachments/assets/722a4abd-b290-41f8-8811-7bee923e6fe1" /> | <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 56 02" src="https://github.com/user-attachments/assets/71421c24-0feb-4105-8c13-cb9593a4fa38" />
 
 You can click the `Edit` button at the top right corner to delete the expenses:
 
@@ -72,4 +70,17 @@ of the same reusable components:
 This static page has a video and advices how to decrease your day-to-day spendings and develop
 a good habits:
 <img width="301" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-04-25 at 09 57 04" src="https://github.com/user-attachments/assets/502e74c5-c23a-436a-b959-0b379074d61e" />
+
+## Architecture & stack
+This app uses MVVM architecture.
+The reused UI elements are stored independently in the `components`.
+Models are also in `models` folder. 2 of them are stored in the DB:
+- Expense (the core domain model)
+- ExpenseTypeTarget (the limit of spending per month per transaction)
+
+UI -> SwiftUI.
+Persistent data store -> SwiftData.
+Charts -> SwiftCharts.
+
+Also, `Fit` package is used for the notes suggestion (in `components/TagCardView.swift`)
 
